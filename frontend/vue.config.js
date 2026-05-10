@@ -1,13 +1,6 @@
 module.exports = {
-  publicPath: process.env.NODE_ENV === 'production' ? '/digitalassetplatform/' : '/',
-  transpileDependencies: [],
-  devServer: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        pathRewrite: { '^/api': '' }
-      }
-    }
+  publicPath: process.env.NODE_ENV === 'production' ? '/frontend/' : '/',
+  configureWebpack: {
+    // optional custom webpack config
   }
 };

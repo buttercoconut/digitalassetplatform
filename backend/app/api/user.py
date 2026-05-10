@@ -1,21 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from ..services.user_service import UserService
+# api/user.py
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.models.user import UserCreate, UserInDB, UserUpdate
+from app.services.user_service import create_user, get_user_by_id, list_users, update_user
 
-router = APIRouter(prefix="/user", tags=["user"])
+router = APIRouter()
 
-class UserProfile(BaseModel):
-    email: str
-    full_name: str | None = None
-    two_factor_enabled: bool = False
+@router.post("/", response_model=UserInDB)
+async def register_user(user: UserCreate):
+    existing = await get_user_by_email(user.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    return await create_user(user)
 
-@router.get("/profile", response_model=UserProfile)
-async def get_profile(user_service: UserService = Depends(UserService)):
-    return user_service.get_profile()
+@router.get("/", response_model=list[UserInDB])
+async def read_users():
+    return await list_users()
 
-@router.put("/profile", response_model=UserProfile)
-async def update_profile(profile: UserProfile, user_service: UserService = Depends(UserService)):
-    try:
-        return user_service.update_profile(profile)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+@router.get("/{user_id}", response_model=UserInDB)
+async def read_user(user_id: int):
+    user = await get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@router.put("/{user_id}", response_model=UserInDB)
+async def update_user_info(user_id: int, data: UserUpdate):
+    user = await update_user(user_id, data)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

@@ -1,12 +1,11 @@
 <template>
   <div class="wallet-dashboard">
-    <h2>지갑 대시보드</h2>
+    <h2>Wallet Dashboard</h2>
     <ul>
-      <li v-for="wallet in wallets" :key="wallet.id">
-        {{ wallet.asset }}: {{ wallet.balance }} {{ wallet.asset }}
+      <li v-for="(balance, asset) in balances" :key="asset">
+        {{ asset }}: {{ balance }}
       </li>
     </ul>
-    <button @click="refreshBalances">잔액 새로고침</button>
   </div>
 </template>
 
@@ -14,34 +13,16 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
-const wallets = ref([]);
+const balances = ref({});
 
-async function fetchWallets() {
-  try {
-    const res = await axios.get('/api/wallets');
-    wallets.value = res.data;
-  } catch (e) {
-    console.error(e);
-  }
-}
+const fetchBalances = async () => {
+  const res = await axios.get('/api/wallet/balances');
+  balances.value = res.data;
+};
 
-async function refreshBalances() {
-  await fetchWallets();
-}
-
-onMounted(fetchWallets);
+onMounted(fetchBalances);
 </script>
 
 <style scoped>
-.wallet-dashboard {
-  max-width: 600px;
-  margin: auto;
-}
-ul {
-  list-style: none;
-  padding: 0;
-}
-li {
-  margin-bottom: 4px;
-}
+.wallet-dashboard { padding: 1rem; }
 </style>
